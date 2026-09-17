@@ -132,7 +132,9 @@
       // than a form that errors.
       async function readFlag() {
         try {
-          const url = SUPABASE_URL + "/rest/v1/_configuration?select=config_value&config_key=eq.feedback_enabled";
+          const url =
+            SUPABASE_URL +
+            "/rest/v1/_configuration?select=config_value&config_key=eq.feedback_enabled&data_type=eq.boolean";
           const response = await fetch(url, { headers: headers });
           if (!response.ok) return true;
           const rows = await response.json();
