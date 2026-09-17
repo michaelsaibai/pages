@@ -153,3 +153,62 @@ section {
   display: inline-block;
   color: #666;
 }
+
+/* Forms. Only the Howler support page has one, and these are the only rules in
+   this file that are not shared by every page. */
+.field {
+  margin: 0 0 1rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #333;
+  font-weight: bold;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  color: #333;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.field textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.form-note {
+  margin-top: -0.5rem;
+  font-size: 14px;
+}
+
+.form-message {
+  margin: 1rem 0 0;
+  font-weight: bold;
+}
+
+.form-message.ok {
+  color: #1b7f3b;
+}
+
+.form-message.error {
+  color: #b00020;
+}
+
+button.button {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+button.button:disabled {
+  background: #999;
+  cursor: default;
+}

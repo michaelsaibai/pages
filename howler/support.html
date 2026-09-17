@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Howler - Support</title>
+    <link rel="icon" type="image/x-icon" href="../16.png" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Support for Howler</h1>
+      <p><em>Last updated: September 17, 2026</em></p>
+
+      <p>
+        Howler lets rugby league fans call bunker reviews and captain's challenges as they happen, and see how the crowd
+        answered.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Write to <a href="mailto:michaelsaibai@gmail.com">michaelsaibai@gmail.com</a> and you will get a reply within a
+        few days. Howler is made by one person, so it may not be the same day.
+      </p>
+      <p>
+        If you are reporting another fan's behaviour, please use <strong>Report</strong> in the app instead &mdash; it
+        reaches the moderation queue straight away and does not put the details in an email.
+      </p>
+
+      <h2>Common problems</h2>
+
+      <h3>My sign-in code has not arrived</h3>
+      <p>
+        Check the spam or junk folder first &mdash; the code comes from an automated sender and often lands there. Make
+        sure the address you typed is the one you can read. A code can only be sent again after five minutes, so the
+        button stays disabled until then. If nothing arrives after two attempts, write to us with the address you are
+        using.
+      </p>
+
+      <h3>I want to delete my account</h3>
+      <p>
+        Open <strong>Profile</strong> in the app and choose <strong>Delete account</strong>. Your email address, your
+        display name, how you voted and the team you support all go, and cannot be recovered. Comments you posted stay,
+        attributed to &ldquo;Fan&rdquo; rather than to you. If you own a group you must delete the group first, because
+        deleting it takes the room and every message away from everyone else in it.
+      </p>
+
+      <h3>Someone is being abusive</h3>
+      <p>
+        Every comment has a <strong>Report</strong> action, and every fan can be <strong>blocked</strong> from your own
+        Profile. Reporting a comment sends it to moderation; blocking a fan hides everything they write from you.
+        Neither tells the other person.
+      </p>
+
+      <h3>I want to change my display name</h3>
+      <p>
+        You cannot. A display name is unique and permanent &mdash; it is what identifies you beside everything you have
+        said, and letting it change would detach people from their own history. Choose carefully at sign-up.
+      </p>
+
+      <h3>How do groups work?</h3>
+      <p>
+        A group is a private room for a handful of fans. Whoever creates it decides who is invited and who stays. The
+        owner cannot leave their own group; their way out is to delete it. You can turn group invitations off in your
+        profile at any time.
+      </p>
+
+      <h2>Send us a message</h2>
+      <p class="form-note">You do not need an account, and you do not need to be signed in.</p>
+
+      <form id="feedback-form" hidden>
+        <div class="field">
+          <label for="email">Your email address</label>
+          <input type="email" id="email" name="email" required maxlength="254" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="message">What has happened?</label>
+          <textarea
+            id="message"
+            name="message"
+            required
+            minlength="10"
+            maxlength="2000"
+            placeholder="What you were doing, and what happened instead."
+          ></textarea>
+        </div>
+        <button type="submit" class="button" id="submit-button">Send</button>
+        <p class="form-message" id="form-message" hidden></p>
+      </form>
+
+      <!-- Visible until the script says otherwise, so a browser with no JavaScript is told to send an email rather
+           than shown an empty heading. -->
+      <p id="form-closed">
+        The form is closed for the moment. Please email
+        <a href="mailto:michaelsaibai@gmail.com">michaelsaibai@gmail.com</a> instead &mdash; it reaches the same person.
+      </p>
+
+      <h2>Privacy and terms</h2>
+      <p>
+        <a href="privacy-policy.html">Privacy policy</a> &middot;
+        <a href="terms-of-service.html">Terms of service</a>
+      </p>
+    </div>
+
+    <script>
+      // The project URL and the publishable key. This key is already inside the shipped app binary and is meant to be
+      // public: it identifies the project and grants nothing on its own. What it can reach is decided by row level
+      // security and by which functions `anon` may execute, which here is submit_feedback and nothing else.
+      const SUPABASE_URL = "https://ukhizvffcgtjvvjcljsm.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_F28E56ClbZO78M9MuPn3EA_n-Y8nRmA";
+
+      const form = document.getElementById("feedback-form");
+      const closed = document.getElementById("form-closed");
+      const button = document.getElementById("submit-button");
+      const messageEl = document.getElementById("form-message");
+
+      const headers = {
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY,
+        "Content-Type": "application/json",
+      };
+
+      function show(text, kind) {
+        messageEl.textContent = text;
+        messageEl.className = "form-message " + kind;
+        messageEl.hidden = false;
+      }
+
+      // Whether the form is open. This is cosmetic, and the page is honest about that: anyone filling the database is
+      // posting to the endpoint directly and has never loaded this file. The switch that matters is inside
+      // submit_feedback, which refuses on the same flag. This exists so a real person sees an email address rather
+      // than a form that errors.
+      async function readFlag() {
+        try {
+          const url = SUPABASE_URL + "/rest/v1/_configuration?select=config_value&config_key=eq.feedback_enabled";
+          const response = await fetch(url, { headers: headers });
+          if (!response.ok) return true;
+          const rows = await response.json();
+          if (!rows.length) return true;
+          return rows[0].config_value === "true";
+        } catch (error) {
+          // An unreadable flag is not a reason to hide the form. The function is the thing enforcing it, and the email
+          // address above is on the page either way.
+          return true;
+        }
+      }
+
+      readFlag().then(function (open) {
+        form.hidden = !open;
+        closed.hidden = open;
+      });
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        button.disabled = true;
+        messageEl.hidden = true;
+
+        try {
+          const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/submit_feedback", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({
+              p_email: document.getElementById("email").value,
+              p_message: document.getElementById("message").value,
+              p_user_agent: navigator.userAgent,
+            }),
+          });
+
+          if (response.ok) {
+            form.reset();
+            show("Thank you. We will reply to that address.", "ok");
+            return;
+          }
+
+          // submit_feedback raises with wording meant to be read by whoever is standing here, so it is shown as it
+          // comes back rather than replaced with something generic.
+          const body = await response.json().catch(function () {
+            return {};
+          });
+          show(body.message || "That did not send. Please email michaelsaibai@gmail.com.", "error");
+        } catch (error) {
+          show("That did not send. Please email michaelsaibai@gmail.com.", "error");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
